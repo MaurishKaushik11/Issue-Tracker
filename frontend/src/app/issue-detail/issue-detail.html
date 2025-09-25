@@ -1,0 +1,14 @@
+<div class="issue-detail-container">
+  <div class="header">
+    <button class="back-button" (click)="goBack()">← Back to Issues</button>
+    <h2>Issue Details</h2>
+  </div>
+
+  <div class="issue-content" *ngIf="issue">
+    <pre>{{ issue | json }}</pre>
+  </div>
+
+  <div class="loading" *ngIf="!issue">
+    Loading issue details...
+  </div>
+</div>

@@ -1,0 +1,176 @@
+<div class="issues-container">
+  <div class="header">
+    <h1>Issue Tracker</h1>
+    <button class="create-button" (click)="createIssue()">Create Issue</button>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="text"
+        placeholder="Search by title..."
+        [(ngModel)]="search"
+        (keyup.enter)="onSearch()"
+        class="search-input">
+      <button (click)="onSearch()" class="search-button">Search</button>
+    </div>
+
+    <div class="filters">
+      <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Status</option>
+        <option *ngFor="let status of getUniqueValues('status')" [value]="status">{{ status }}</option>
+      </select>
+
+      <select [(ngModel)]="priorityFilter" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Priority</option>
+        <option *ngFor="let priority of getUniqueValues('priority')" [value]="priority">{{ priority }}</option>
+      </select>
+
+      <select [(ngModel)]="assigneeFilter" (change)="onFilterChange()" class="filter-select">
+        <option value="">All Assignee</option>
+        <option *ngFor="let assignee of getUniqueValues('assignee')" [value]="assignee">{{ assignee }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Issues Table -->
+  <div class="table-container">
+    <table class="issues-table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th (click)="onSort('id')" class="sortable">
+            ID {{ getSortIcon('id') }}
+          </th>
+          <th (click)="onSort('title')" class="sortable">
+            Title {{ getSortIcon('title') }}
+          </th>
+          <th (click)="onSort('status')" class="sortable">
+            Status {{ getSortIcon('status') }}
+          </th>
+          <th (click)="onSort('priority')" class="sortable">
+            Priority {{ getSortIcon('priority') }}
+          </th>
+          <th (click)="onSort('assignee')" class="sortable">
+            Assignee {{ getSortIcon('assignee') }}
+          </th>
+          <th (click)="onSort('updatedAt')" class="sortable">
+            Updated At {{ getSortIcon('updatedAt') }}
+          </th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let issue of issues" (click)="viewIssue(issue)" class="issue-row">
+          <td>{{ issue.id }}</td>
+          <td>{{ issue.title }}</td>
+          <td><span class="status-badge" [class]="'status-' + issue.status">{{ issue.status }}</span></td>
+          <td><span class="priority-badge" [class]="'priority-' + issue.priority">{{ issue.priority }}</span></td>
+          <td>{{ issue.assignee }}</td>
+          <td>{{ issue.updatedAt | date:'short' }}</td>
+          <td (click)="$event.stopPropagation()">
+            <button (click)="editIssue(issue)" class="edit-button">Edit</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="loading" *ngIf="loading">
+      Loading issues...
+    </div>
+
+    <div class="no-issues" *ngIf="!loading && issues.length === 0">
+      No issues found.
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button
+      (click)="onPageChange(page - 1)"
+      [disabled]="page <= 1"
+      class="page-button">
+      Previous
+    </button>
+
+    <span class="page-info">
+      Page {{ page }} of {{ totalPages }} ({{ total }} total)
+    </span>
+
+    <button
+      (click)="onPageChange(page + 1)"
+      [disabled]="page >= totalPages"
+      class="page-button">
+      Next
+    </button>
+  </div>
+
+  <!-- Create/Edit Form Modal -->
+  <div class="modal" *ngIf="showCreateForm || showEditForm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>{{ showCreateForm ? 'Create Issue' : 'Edit Issue' }}</h3>
+        <button (click)="cancelForm()" class="close-button">&times;</button>
+      </div>
+
+      <form class="issue-form" (ngSubmit)="saveIssue()">
+        <div class="form-group">
+          <label for="title">Title *</label>
+          <input
+            id="title"
+            type="text"
+            [(ngModel)]="formData.title"
+            name="title"
+            required
+            class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            [(ngModel)]="formData.description"
+            name="description"
+            rows="4"
+            class="form-textarea"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="status">Status</label>
+            <select id="status" [(ngModel)]="formData.status" name="status" class="form-select">
+              <option value="open">Open</option>
+              <option value="in-progress">In Progress</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="priority">Priority</label>
+            <select id="priority" [(ngModel)]="formData.priority" name="priority" class="form-select">
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="assignee">Assignee</label>
+          <input
+            id="assignee"
+            type="text"
+            [(ngModel)]="formData.assignee"
+            name="assignee"
+            class="form-input">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" (click)="cancelForm()" class="cancel-button">Cancel</button>
+          <button type="submit" class="save-button">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
